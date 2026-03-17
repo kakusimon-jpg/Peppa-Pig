@@ -11,80 +11,419 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <!-- Babel for in-browser JSX compilation -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <style>
-        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slide-in-from-bottom-2 { from { transform: translateY(0.5rem); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        @keyframes slide-in-from-top-1 { from { transform: translateY(-0.25rem); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        @keyframes zoom-in-95 { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        
-        .animate-in { animation-duration: 300ms; animation-fill-mode: both; animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
-        .fade-in { animation-name: fade-in; }
-        .slide-in-from-bottom-2 { animation-name: slide-in-from-bottom-2; }
-        .slide-in-from-top-1 { animation-name: slide-in-from-top-1; }
-        .zoom-in-95 { animation-name: zoom-in-95; }
-        
-        /* Hide scrollbar for cleaner UI */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #d1d5db; }
-    </style>
 </head>
-<body class="bg-stone-100 antialiased text-stone-800">
+<body class="bg-stone-100">
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // --- Inline SVG Icons (Replacing lucide-react) ---
-        const IconBase = ({ children, size = 24, className = "" }) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-                {children}
-            </svg>
-        );
-        const Mic = (p) => <IconBase {...p}><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></IconBase>;
-        const MicOff = (p) => <IconBase {...p}><line x1="2" x2="22" y1="2" y2="22"/><path d="M18.89 13.23A7.12 7.12 0 0 0 19 12v-2"/><path d="M5 10v2a7 7 0 0 0 12 5"/><path d="M15 9.34V5a3 3 0 0 0-5.68-1.33"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12"/><line x1="12" x2="12" y1="19" y2="22"/></IconBase>;
-        const Activity = (p) => <IconBase {...p}><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></IconBase>;
-        const Loader2 = (p) => <IconBase {...p}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></IconBase>;
-        const Volume2 = (p) => <IconBase {...p}><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></IconBase>;
-        const Sparkles = (p) => <IconBase {...p}><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></IconBase>;
-        const HeartHandshake = (p) => <IconBase {...p}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M12 5 9.04 9.2a2.2 2.2 0 0 0-.28 1.46l.5 3.14a2.2 2.2 0 0 0 1.76 1.8l3.96.8a2.2 2.2 0 0 0 2.06-.52l.96-.96"/><path d="M16 16.4V19l-3.23 2.15a2 2 0 0 1-2.22 0L8 19.4"/><path d="M11 12H8.5a2.5 2.5 0 0 0-2.5 2.5V17"/><path d="M18 12h-2"/></IconBase>;
-        const Moon = (p) => <IconBase {...p}><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></IconBase>;
-        const Globe = (p) => <IconBase {...p}><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></IconBase>;
-        const Settings = (p) => <IconBase {...p}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></IconBase>;
-        const X = (p) => <IconBase {...p}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></IconBase>;
+        // =======================
+        // --- 静态 SVG 图标库 (替代 lucide-react) ---
+        // =======================
+        const Mic = ({size=24, className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>;
+        const MicOff = ({size=24, className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="2" x2="22" y1="2" y2="22"/><path d="M18.89 13.23A7.12 7.12 0 0 0 19 12v-2"/><path d="M5 10v2a7 7 0 0 0 12 5"/><path d="M15 9.34V5a3 3 0 0 0-5.68-1.33"/><path d="M9 9v3a3 3 0 0 0 5.12 1.92"/><line x1="12" x2="12" y1="19" y2="22"/></svg>;
+        const Activity = ({size=24, className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>;
+        const Loader2 = ({size=24, className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>;
+        const Volume2 = ({size=24, className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>;
+        const HeartHandshake = ({size=24, className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M12 5 9.04 9.2a2.2 2.2 0 0 0-1.27 1.88v0c-.07.36-.12.72-.12 1.08v0c0 .94.45 1.85 1.14 2.45L12 18"/><path d="M16 11h2c.8 0 1.5.7 1.5 1.5v0c0 .8-.7 1.5-1.5 1.5h-2"/></svg>;
+        const Moon = ({size=24, className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>;
+        const Globe = ({size=24, className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg>;
+        const Settings = ({size=24, className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>;
+        const X = ({size=24, className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>;
+        const Music = ({size=24, className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>;
 
-
-        // --- App Component ---
-        const defaultGeminiApiKey = ""; // 预留，或可通过设置界面自定义
+        const apiKey = ""; // 执行环境会自动注入
         const SILICON_FLOW_API_KEY = "sk-trzkhxflazgegemorowwscodqnzcdzbtnhujpacxxicwwchn";
         const SILICON_FLOW_URL = "https://api.siliconflow.cn/v1/chat/completions";
 
+        // =======================
+        // --- 动态 SVG 头像组件库 ---
+        // =======================
+
+        const DoraemonAvatar = ({ isSpeaking, isPlayingSong }) => (
+          <svg viewBox="0 0 200 200" className="w-32 h-32 sm:w-40 sm:h-40 drop-shadow-xl transition-transform duration-300">
+            <circle cx="100" cy="100" r="90" fill="#0096d2" stroke="#333" strokeWidth="3"/>
+            <circle cx="100" cy="115" r="75" fill="#ffffff" stroke="#333" strokeWidth="3"/>
+            {isPlayingSong ? (
+              <>
+                {/* 听歌时的多重眼部表情：微笑眼 -> 睁大眼 -> 单眼Wink */}
+                <path d="M 65 50 Q 75 40 85 50" fill="none" stroke="#333" strokeWidth="3" strokeLinecap="round">
+                   <animate attributeName="d" values="M 65 50 Q 75 40 85 50; M 65 50 Q 75 25 85 50; M 65 50 Q 75 40 85 50" dur="3s" repeatCount="indefinite" />
+                </path>
+                <path d="M 115 50 Q 125 40 135 50" fill="none" stroke="#333" strokeWidth="3" strokeLinecap="round">
+                   <animate attributeName="d" values="M 115 50 Q 125 40 135 50; M 115 50 Q 125 25 135 50; M 115 50 Q 125 60 135 50" dur="3s" repeatCount="indefinite" />
+                </path>
+              </>
+            ) : (
+              <>
+                <ellipse cx="75" cy="50" rx="20" ry="25" fill="#ffffff" stroke="#333" strokeWidth="3"/>
+                <ellipse cx="125" cy="50" rx="20" ry="25" fill="#ffffff" stroke="#333" strokeWidth="3"/>
+                <circle cx="85" cy="55" r="6" fill="#333"/> <circle cx="115" cy="55" r="6" fill="#333"/>
+              </>
+            )}
+            <circle cx="100" cy="80" r="14" fill="#e3001b" stroke="#333" strokeWidth="3"/> <circle cx="105" cy="75" r="4" fill="#ffffff"/>
+            <line x1="30" y1="80" x2="75" y2="90" stroke="#333" strokeWidth="3" strokeLinecap="round"/> <line x1="25" y1="95" x2="75" y2="95" stroke="#333" strokeWidth="3" strokeLinecap="round"/> <line x1="30" y1="110" x2="75" y2="100" stroke="#333" strokeWidth="3" strokeLinecap="round"/>
+            <line x1="170" y1="80" x2="125" y2="90" stroke="#333" strokeWidth="3" strokeLinecap="round"/> <line x1="175" y1="95" x2="125" y2="95" stroke="#333" strokeWidth="3" strokeLinecap="round"/> <line x1="170" y1="110" x2="125" y2="100" stroke="#333" strokeWidth="3" strokeLinecap="round"/>
+            <line x1="100" y1="94" x2="100" y2="135" stroke="#333" strokeWidth="3" strokeLinecap="round"/>
+            {isSpeaking ? (
+              <path d="M 50 135 Q 100 190 150 135 Z" fill="#e3001b" stroke="#333" strokeWidth="3" strokeLinejoin="round">
+                <animate attributeName="d" values="M 50 135 Q 100 190 150 135 Z; M 50 135 Q 100 145 150 135 Z; M 50 135 Q 100 190 150 135 Z" dur="0.35s" repeatCount="indefinite" />
+              </path>
+            ) : isPlayingSong ? (
+              <path d="M 70 135 Q 100 160 130 135 Z" fill="#e3001b" stroke="#333" strokeWidth="3">
+                 {/* 听歌时嘴型随节奏变化：微笑 -> 张大 -> 嘟嘴 */}
+                 <animate attributeName="d" values="M 70 135 Q 100 160 130 135 Z; M 80 135 Q 100 180 120 135 Z; M 90 135 Q 100 150 110 135 Z; M 70 135 Q 100 160 130 135 Z" dur="2s" repeatCount="indefinite" />
+              </path>
+            ) : (
+              <path d="M 50 135 Q 100 160 150 135" fill="none" stroke="#333" strokeWidth="3" strokeLinecap="round"/>
+            )}
+          </svg>
+        );
+
+        const PikachuAvatar = ({ isSpeaking, isPlayingSong }) => (
+          <svg viewBox="0 0 200 200" className="w-32 h-32 sm:w-40 sm:h-40 drop-shadow-xl transition-transform duration-300">
+            <path d="M 60 70 L 20 20 L 90 40 Z" fill="#ffcb05" stroke="#333" strokeWidth="3" strokeLinejoin="round"/>
+            <path d="M 60 70 L 20 20 L 45 35 Z" fill="#333"/>
+            <path d="M 140 70 L 180 20 L 110 40 Z" fill="#ffcb05" stroke="#333" strokeWidth="3" strokeLinejoin="round"/>
+            <path d="M 140 70 L 180 20 L 155 35 Z" fill="#333"/>
+            <circle cx="100" cy="120" r="70" fill="#ffcb05" stroke="#333" strokeWidth="3"/>
+            <circle cx="50" cy="140" r="14" fill="#ed1c24" stroke="#333" strokeWidth="3"/> <circle cx="150" cy="140" r="14" fill="#ed1c24" stroke="#333" strokeWidth="3"/>
+            {isPlayingSong ? (
+              <>
+                <path d="M 65 100 Q 75 95 85 100" fill="none" stroke="#333" strokeWidth="3" strokeLinecap="round">
+                   <animate attributeName="d" values="M 65 100 Q 75 95 85 100; M 65 100 Q 75 80 85 100; M 65 100 Q 75 95 85 100" dur="2s" repeatCount="indefinite" />
+                </path>
+                <path d="M 115 100 Q 125 95 135 100" fill="none" stroke="#333" strokeWidth="3" strokeLinecap="round">
+                   <animate attributeName="d" values="M 115 100 Q 125 95 135 100; M 115 100 Q 125 110 135 100; M 115 100 Q 125 95 135 100" dur="2s" repeatCount="indefinite" />
+                </path>
+              </>
+            ) : (
+              <>
+                <circle cx="75" cy="100" r="10" fill="#333"/> <circle cx="80" cy="95" r="4" fill="#fff"/>
+                <circle cx="125" cy="100" r="10" fill="#333"/> <circle cx="130" cy="95" r="4" fill="#fff"/>
+              </>
+            )}
+            <circle cx="100" cy="115" r="3" fill="#333"/>
+            {isSpeaking ? (
+              <path d="M 85 125 Q 100 130 115 125 Q 115 155 100 155 Q 85 155 85 125 Z" fill="#ea929a" stroke="#333" strokeWidth="3" strokeLinejoin="round">
+                 <animate attributeName="d" values="M 85 125 Q 100 130 115 125 Q 115 155 100 155 Q 85 155 85 125 Z; M 85 125 Q 100 130 115 125 Q 115 135 100 135 Q 85 135 85 125 Z; M 85 125 Q 100 130 115 125 Q 115 155 100 155 Q 85 155 85 125 Z" dur="0.35s" repeatCount="indefinite" />
+              </path>
+            ) : isPlayingSong ? (
+              <path d="M 90 125 Q 100 140 110 125 Z" fill="#ea929a" stroke="#333" strokeWidth="3">
+                 <animate attributeName="d" values="M 90 125 Q 100 140 110 125 Z; M 85 125 Q 100 160 115 125 Z; M 90 125 Q 100 140 110 125 Z" dur="1s" repeatCount="indefinite" />
+              </path>
+            ) : (
+              <path d="M 85 125 Q 92 135 100 125 Q 108 135 115 125" fill="none" stroke="#333" strokeWidth="3" strokeLinecap="round"/>
+            )}
+          </svg>
+        );
+
+        const PeppaPigAvatar = ({ isSpeaking, isPlayingSong }) => (
+          <svg viewBox="0 0 200 200" className="w-32 h-32 sm:w-40 sm:h-40 drop-shadow-xl transition-transform duration-300">
+            <path d="M 40 100 Q 40 60 90 60 L 150 60 Q 180 60 180 80 Q 180 100 150 100 Q 140 100 130 110 Q 120 160 80 160 Q 40 160 40 100 Z" fill="#ffb3c6" stroke="#e65a8d" strokeWidth="4"/>
+            <ellipse cx="165" cy="80" rx="15" ry="20" fill="#ffb3c6" stroke="#e65a8d" strokeWidth="4"/>
+            <circle cx="160" cy="75" r="3" fill="#e65a8d"/> <circle cx="170" cy="75" r="3" fill="#e65a8d"/>
+            <path d="M 70 60 L 60 30 L 80 30 Z" fill="#ffb3c6" stroke="#e65a8d" strokeWidth="4" strokeLinejoin="round"/>
+            <path d="M 100 60 L 90 30 L 110 30 Z" fill="#ffb3c6" stroke="#e65a8d" strokeWidth="4" strokeLinejoin="round"/>
+            {isPlayingSong ? (
+              <>
+                <path d="M 82 75 Q 90 65 98 75" fill="none" stroke="#e65a8d" strokeWidth="3" strokeLinecap="round">
+                   <animate attributeName="d" values="M 82 75 Q 90 65 98 75; M 82 75 Q 90 85 98 75; M 82 75 Q 90 65 98 75" dur="1.5s" repeatCount="indefinite" />
+                </path>
+                <path d="M 112 75 Q 120 65 128 75" fill="none" stroke="#e65a8d" strokeWidth="3" strokeLinecap="round">
+                   <animate attributeName="d" values="M 112 75 Q 120 65 128 75; M 112 75 Q 120 85 128 75; M 112 75 Q 120 65 128 75" dur="1.5s" repeatCount="indefinite" />
+                </path>
+              </>
+            ) : (
+              <>
+                <circle cx="90" cy="75" r="8" fill="#fff" stroke="#e65a8d" strokeWidth="2"/> <circle cx="92" cy="75" r="3" fill="#000"/>
+                <circle cx="120" cy="75" r="8" fill="#fff" stroke="#e65a8d" strokeWidth="2"/> <circle cx="122" cy="75" r="3" fill="#000"/>
+              </>
+            )}
+            <circle cx="80" cy="110" r="15" fill="#ff8da1"/>
+            {isSpeaking ? (
+              <path d="M 110 120 Q 120 140 130 120 Z" fill="#d91e49" stroke="#e65a8d" strokeWidth="3">
+                <animate attributeName="d" values="M 110 120 Q 120 140 130 120 Z; M 110 120 Q 120 125 130 120 Z; M 110 120 Q 120 140 130 120 Z" dur="0.3s" repeatCount="indefinite" />
+              </path>
+            ) : isPlayingSong ? (
+              <path d="M 115 120 Q 120 135 125 120 Z" fill="#d91e49" stroke="#e65a8d" strokeWidth="3">
+                 <animate attributeName="d" values="M 115 120 Q 120 135 125 120 Z; M 110 120 Q 120 145 130 120 Z; M 115 120 Q 120 135 125 120 Z" dur="1.2s" repeatCount="indefinite" />
+              </path>
+            ) : (
+              <path d="M 110 125 Q 120 135 130 120" fill="none" stroke="#e65a8d" strokeWidth="4" strokeLinecap="round"/>
+            )}
+          </svg>
+        );
+
+        const NinjaTurtleAvatar = ({ isSpeaking, isPlayingSong }) => (
+          <svg viewBox="0 0 200 200" className="w-32 h-32 sm:w-40 sm:h-40 drop-shadow-xl transition-transform duration-300">
+            {/* 脸部形状 */}
+            <ellipse cx="100" cy="110" rx="65" ry="55" fill="#4caf50" stroke="#333" strokeWidth="3"/>
+            {/* 脸颊突起 */}
+            <ellipse cx="45" cy="120" rx="15" ry="25" fill="#4caf50" stroke="#333" strokeWidth="3" transform="rotate(20 45 120)"/>
+            <ellipse cx="155" cy="120" rx="15" ry="25" fill="#4caf50" stroke="#333" strokeWidth="3" transform="rotate(-20 155 120)"/>
+            
+            {/* 飘逸的眼罩绑带 */}
+            <path d="M 40 95 Q 10 110 15 130 Q 25 120 30 100 Z" fill="#2196f3" stroke="#333" strokeWidth="2">
+               {isPlayingSong && <animate attributeName="d" values="M 40 95 Q 10 110 15 130 Q 25 120 30 100 Z; M 40 95 Q 0 90 5 110 Q 20 110 30 100 Z; M 40 95 Q 10 110 15 130 Q 25 120 30 100 Z" dur="1s" repeatCount="indefinite"/>}
+            </path>
+            <path d="M 35 105 Q 15 130 20 150 Q 35 135 40 115 Z" fill="#2196f3" stroke="#333" strokeWidth="2">
+               {isPlayingSong && <animate attributeName="d" values="M 35 105 Q 15 130 20 150 Q 35 135 40 115 Z; M 35 105 Q 5 140 10 160 Q 25 145 40 115 Z; M 35 105 Q 15 130 20 150 Q 35 135 40 115 Z" dur="1.2s" repeatCount="indefinite"/>}
+            </path>
+
+            {/* 眼罩本罩 */}
+            <path d="M 30 90 Q 100 115 170 90 Q 180 110 170 125 Q 100 145 30 125 Z" fill="#2196f3" stroke="#333" strokeWidth="3"/>
+            
+            {/* 眼睛 */}
+            {isPlayingSong ? (
+               <>
+                 <path d="M 65 105 Q 80 95 90 105" fill="none" stroke="#fff" strokeWidth="4" strokeLinecap="round">
+                    <animate attributeName="d" values="M 65 105 Q 80 95 90 105; M 65 105 Q 80 115 90 105; M 65 105 Q 80 95 90 105" dur="2s" repeatCount="indefinite" />
+                 </path>
+                 <path d="M 110 105 Q 120 95 135 105" fill="none" stroke="#fff" strokeWidth="4" strokeLinecap="round">
+                    <animate attributeName="d" values="M 110 105 Q 120 95 135 105; M 110 105 Q 120 115 135 105; M 110 105 Q 120 95 135 105" dur="2s" repeatCount="indefinite" />
+                 </path>
+               </>
+            ) : (
+               <>
+                 <ellipse cx="75" cy="110" rx="12" ry="8" fill="#fff" stroke="#333" strokeWidth="2" transform="rotate(10 75 110)"/>
+                 <ellipse cx="125" cy="110" rx="12" ry="8" fill="#fff" stroke="#333" strokeWidth="2" transform="rotate(-10 125 110)"/>
+               </>
+            )}
+            
+            {/* 嘴巴 */}
+            {isSpeaking ? (
+              <path d="M 70 140 Q 100 165 130 140 Z" fill="#fff" stroke="#333" strokeWidth="3" strokeLinejoin="round">
+                 <animate attributeName="d" values="M 70 140 Q 100 165 130 140 Z; M 70 140 Q 100 145 130 140 Z; M 70 140 Q 100 165 130 140 Z" dur="0.3s" repeatCount="indefinite" />
+              </path>
+            ) : isPlayingSong ? (
+              <path d="M 80 145 Q 100 165 120 145 Z" fill="#cc3333" stroke="#333" strokeWidth="3">
+                 <animate attributeName="d" values="M 80 145 Q 100 165 120 145 Z; M 85 140 Q 100 150 115 140 Z; M 80 145 Q 100 165 120 145 Z" dur="0.8s" repeatCount="indefinite" />
+              </path>
+            ) : (
+              <path d="M 70 145 Q 100 155 130 145" fill="none" stroke="#333" strokeWidth="3" strokeLinecap="round"/>
+            )}
+          </svg>
+        );
+
+        const PopeyeAvatar = ({ isSpeaking, isPlayingSong }) => (
+          <svg viewBox="0 0 200 200" className="w-32 h-32 sm:w-40 sm:h-40 drop-shadow-xl transition-transform duration-300">
+            {/* 脸部上方 */}
+            <path d="M 60 80 Q 100 40 140 80 L 140 120 Q 100 140 60 120 Z" fill="#ffe0bd" stroke="#333" strokeWidth="3"/>
+            
+            {/* 超大的下巴 */}
+            <ellipse cx="100" cy="140" rx="45" ry="35" fill="#ffe0bd" stroke="#333" strokeWidth="3"/>
+            <path d="M 85 155 Q 100 165 115 155" fill="none" stroke="#333" strokeWidth="2" strokeLinecap="round"/>
+
+            {/* 水手帽 */}
+            <path d="M 50 60 Q 100 10 150 60 Z" fill="#fff" stroke="#333" strokeWidth="3"/>
+            <rect x="45" y="60" width="110" height="15" fill="#333"/>
+            <rect x="90" y="60" width="20" height="15" fill="#ffcc00"/>
+            
+            {/* 鼻子 */}
+            <ellipse cx="100" cy="110" rx="15" ry="20" fill="#ffccb3" stroke="#333" strokeWidth="3"/>
+            
+            {/* 烟斗 */}
+            <g transform="translate(0, 0)">
+               {isPlayingSong && <animateTransform attributeName="transform" type="rotate" values="0 130 135; 15 130 135; 0 130 135" dur="0.8s" repeatCount="indefinite"/>}
+               <path d="M 120 135 L 170 145" stroke="#8b4513" strokeWidth="6" strokeLinecap="round"/>
+               <rect x="165" y="130" width="15" height="25" fill="#f4a460" stroke="#333" strokeWidth="2"/>
+               <path d="M 165 130 L 180 130" stroke="#333" strokeWidth="2"/>
+            </g>
+
+            {/* 眼睛 - 标志性的一大一小 */}
+            {isPlayingSong ? (
+               <>
+                 <path d="M 65 95 Q 75 85 85 95" fill="none" stroke="#333" strokeWidth="3" strokeLinecap="round">
+                    <animate attributeName="d" values="M 65 95 Q 75 85 85 95; M 65 95 Q 75 105 85 95; M 65 95 Q 75 85 85 95" dur="1.5s" repeatCount="indefinite" />
+                 </path>
+                 <path d="M 115 95 Q 120 90 125 95" fill="none" stroke="#333" strokeWidth="3" strokeLinecap="round"/>
+               </>
+            ) : (
+               <>
+                 <ellipse cx="75" cy="90" rx="10" ry="15" fill="#fff" stroke="#333" strokeWidth="2"/>
+                 <circle cx="75" cy="95" r="4" fill="#333"/>
+                 {/* 眯眯眼 */}
+                 <path d="M 115 95 L 130 95" stroke="#333" strokeWidth="3" strokeLinecap="round"/>
+               </>
+            )}
+
+            {/* 嘴巴 */}
+            {isSpeaking ? (
+              <path d="M 85 130 Q 100 150 115 130 Z" fill="#000" stroke="#333" strokeWidth="2">
+                 <animate attributeName="d" values="M 85 130 Q 100 150 115 130 Z; M 85 130 Q 100 135 115 130 Z; M 85 130 Q 100 150 115 130 Z" dur="0.3s" repeatCount="indefinite" />
+              </path>
+            ) : isPlayingSong ? (
+              <path d="M 80 135 Q 100 150 100 135 Z" fill="#000" stroke="#333" strokeWidth="2">
+                 <animate attributeName="d" values="M 80 135 Q 100 150 100 135 Z; M 85 135 Q 100 140 100 135 Z; M 80 135 Q 100 150 100 135 Z" dur="0.6s" repeatCount="indefinite" />
+              </path>
+            ) : (
+              <path d="M 80 135 Q 100 145 120 135" fill="none" stroke="#333" strokeWidth="3" strokeLinecap="round"/>
+            )}
+          </svg>
+        );
+
+        const HuluwaAvatar = ({ isSpeaking, isPlayingSong }) => (
+          <svg viewBox="0 0 200 200" className="w-32 h-32 sm:w-40 sm:h-40 drop-shadow-xl transition-transform duration-300">
+            <path d="M 90 30 Q 100 10 110 30 Q 120 50 100 50 Q 80 50 90 30 Z" fill="#ff6600" stroke="#333" strokeWidth="3"/>
+            <path d="M 95 20 Q 100 10 105 20 Q 110 30 100 30 Q 90 30 95 20 Z" fill="#ffcc00" stroke="#333" strokeWidth="2"/>
+            <path d="M 40 90 Q 100 40 160 90 L 100 60 Z" fill="#1a1a1a" stroke="#333" strokeWidth="2"/>
+            <path d="M 50 90 Q 50 170 100 170 Q 150 170 150 90 Z" fill="#ffe0bd" stroke="#333" strokeWidth="3"/>
+            <path d="M 80 170 Q 100 190 60 190 Z" fill="#33cc33" stroke="#333" strokeWidth="2"/>
+            <path d="M 120 170 Q 100 190 140 190 Z" fill="#33cc33" stroke="#333" strokeWidth="2"/>
+            {isPlayingSong ? (
+               <>
+                 <path d="M 65 110 Q 80 100 95 110" fill="none" stroke="#333" strokeWidth="3" strokeLinecap="round">
+                    <animate attributeName="d" values="M 65 110 Q 80 100 95 110; M 65 110 Q 80 120 95 110; M 65 110 Q 80 100 95 110" dur="2.5s" repeatCount="indefinite" />
+                 </path>
+                 <path d="M 105 110 Q 120 100 135 110" fill="none" stroke="#333" strokeWidth="3" strokeLinecap="round">
+                    <animate attributeName="d" values="M 105 110 Q 120 100 135 110; M 105 110 Q 120 120 135 110; M 105 110 Q 120 100 135 110" dur="2.5s" repeatCount="indefinite" />
+                 </path>
+               </>
+            ) : (
+               <>
+                 <ellipse cx="80" cy="110" rx="15" ry="20" fill="#fff" stroke="#333" strokeWidth="2"/>
+                 <circle cx="85" cy="110" r="8" fill="#1a1a1a"/> <circle cx="88" cy="106" r="3" fill="#fff"/>
+                 <ellipse cx="120" cy="110" rx="15" ry="20" fill="#fff" stroke="#333" strokeWidth="2"/>
+                 <circle cx="115" cy="110" r="8" fill="#1a1a1a"/> <circle cx="112" cy="106" r="3" fill="#fff"/>
+               </>
+            )}
+            {isSpeaking ? (
+              <path d="M 85 145 Q 100 165 115 145 Z" fill="#cc3333" stroke="#333" strokeWidth="2">
+                 <animate attributeName="d" values="M 85 145 Q 100 165 115 145 Z; M 85 145 Q 100 150 115 145 Z; M 85 145 Q 100 165 115 145 Z" dur="0.3s" repeatCount="indefinite" />
+              </path>
+            ) : isPlayingSong ? (
+              <path d="M 85 145 Q 100 160 115 145 Z" fill="#cc3333" stroke="#333" strokeWidth="2">
+                 <animate attributeName="d" values="M 85 145 Q 100 160 115 145 Z; M 90 145 Q 100 155 110 145 Z; M 85 145 Q 100 160 115 145 Z" dur="1.2s" repeatCount="indefinite" />
+              </path>
+            ) : (
+              <path d="M 90 145 Q 100 150 110 145" fill="none" stroke="#333" strokeWidth="3" strokeLinecap="round"/>
+            )}
+          </svg>
+        );
+
+        const DonaldAvatar = ({ isSpeaking, isPlayingSong }) => (
+          <svg viewBox="0 0 200 200" className="w-32 h-32 sm:w-40 sm:h-40 drop-shadow-xl transition-transform duration-300">
+            <path d="M 70 40 L 130 40 L 140 60 L 60 60 Z" fill="#0055ff" stroke="#333" strokeWidth="3" strokeLinejoin="round"/>
+            <path d="M 60 60 Q 100 70 140 60" fill="none" stroke="#333" strokeWidth="3"/>
+            <rect x="130" y="45" width="20" height="5" fill="#333"/>
+            <circle cx="100" cy="100" r="60" fill="#fff" stroke="#333" strokeWidth="3"/>
+            <path d="M 50 100 Q 30 140 100 140 Q 170 140 150 100" fill="#fff" stroke="#333" strokeWidth="3"/>
+            {isPlayingSong ? (
+               <>
+                 <path d="M 75 90 Q 85 80 95 90" fill="none" stroke="#333" strokeWidth="3" strokeLinecap="round">
+                    <animate attributeName="d" values="M 75 90 Q 85 80 95 90; M 75 90 Q 85 100 95 90; M 75 90 Q 85 80 95 90" dur="1s" repeatCount="indefinite" />
+                 </path>
+                 <path d="M 105 90 Q 115 80 125 90" fill="none" stroke="#333" strokeWidth="3" strokeLinecap="round">
+                    <animate attributeName="d" values="M 105 90 Q 115 80 125 90; M 105 90 Q 115 100 125 90; M 105 90 Q 115 80 125 90" dur="1s" repeatCount="indefinite" />
+                 </path>
+               </>
+            ) : (
+               <>
+                 <ellipse cx="85" cy="85" rx="10" ry="20" fill="#fff" stroke="#333" strokeWidth="2"/>
+                 <circle cx="85" cy="90" r="5" fill="#333"/>
+                 <ellipse cx="115" cy="85" rx="10" ry="20" fill="#fff" stroke="#333" strokeWidth="2"/>
+                 <circle cx="115" cy="90" r="5" fill="#333"/>
+               </>
+            )}
+            <path d="M 60 110 Q 100 100 140 110 Q 160 130 100 140 Q 40 130 60 110 Z" fill="#ffcc00" stroke="#333" strokeWidth="3" strokeLinejoin="round"/>
+            {isSpeaking || isPlayingSong ? (
+               <path d="M 70 120 Q 100 160 130 120 Z" fill="#ff9900" stroke="#333" strokeWidth="3">
+                 <animate attributeName="d" values="M 70 120 Q 100 160 130 120 Z; M 70 120 Q 100 130 130 120 Z; M 70 120 Q 100 160 130 120 Z" dur={isPlayingSong ? "0.8s" : "0.3s"} repeatCount="indefinite" />
+               </path>
+            ) : (
+               <path d="M 70 120 Q 100 130 130 120" fill="none" stroke="#333" strokeWidth="3"/>
+            )}
+          </svg>
+        );
+
+        const ShinchanAvatar = ({ isSpeaking, isPlayingSong }) => (
+          <svg viewBox="0 0 200 200" className="w-32 h-32 sm:w-40 sm:h-40 drop-shadow-xl transition-transform duration-300">
+            <path d="M 40 120 Q 30 180 90 180 Q 150 180 160 120 Q 170 50 100 50 Q 50 50 40 120 Z" fill="#ffe0bd" stroke="#333" strokeWidth="3"/>
+            <path d="M 50 70 Q 70 50 90 70" fill="none" stroke="#333" strokeWidth="8" strokeLinecap="round">
+               {isPlayingSong && <animate attributeName="d" values="M 50 70 Q 70 50 90 70; M 50 65 Q 70 45 90 65; M 50 70 Q 70 50 90 70" dur="1.5s" repeatCount="indefinite" />}
+            </path>
+            <path d="M 110 70 Q 130 50 150 70" fill="none" stroke="#333" strokeWidth="8" strokeLinecap="round">
+               {isPlayingSong && <animate attributeName="d" values="M 110 70 Q 130 50 150 70; M 110 65 Q 130 45 150 65; M 110 70 Q 130 50 150 70" dur="1.5s" repeatCount="indefinite" />}
+            </path>
+            {isPlayingSong ? (
+               <>
+                 <path d="M 60 90 Q 70 80 80 90" fill="none" stroke="#333" strokeWidth="3" strokeLinecap="round"/>
+                 <path d="M 120 90 Q 130 80 140 90" fill="none" stroke="#333" strokeWidth="3" strokeLinecap="round"/>
+               </>
+            ) : (
+               <>
+                 <circle cx="70" cy="90" r="10" fill="#fff" stroke="#333" strokeWidth="2"/> <circle cx="70" cy="90" r="5" fill="#333"/>
+                 <circle cx="130" cy="90" r="10" fill="#fff" stroke="#333" strokeWidth="2"/> <circle cx="130" cy="90" r="5" fill="#333"/>
+               </>
+            )}
+            <ellipse cx="50" cy="120" rx="15" ry="10" fill="#ff9999" opacity="0.6"/>
+            <ellipse cx="150" cy="120" rx="15" ry="10" fill="#ff9999" opacity="0.6"/>
+            {isSpeaking ? (
+              <circle cx="100" cy="140" r="15" fill="#cc3333" stroke="#333" strokeWidth="2">
+                 <animate attributeName="r" values="15; 5; 15" dur="0.3s" repeatCount="indefinite" />
+              </circle>
+            ) : isPlayingSong ? (
+              <circle cx="100" cy="140" r="12" fill="#cc3333" stroke="#333" strokeWidth="2">
+                 <animate attributeName="r" values="12; 6; 12" dur="0.8s" repeatCount="indefinite" />
+              </circle>
+            ) : (
+              <path d="M 95 140 Q 100 145 105 140" fill="none" stroke="#333" strokeWidth="3" strokeLinecap="round"/>
+            )}
+          </svg>
+        );
+
+        const AVATAR_OPTIONS = [
+          { id: 'doraemon', name: '多啦A梦', component: DoraemonAvatar },
+          { id: 'peppapig', name: '小猪佩奇', component: PeppaPigAvatar },
+          { id: 'ninjaturtle', name: '忍者神龟', component: NinjaTurtleAvatar },
+          { id: 'popeye', name: '大力水手', component: PopeyeAvatar },
+          { id: 'huluwa', name: '葫芦娃', component: HuluwaAvatar },
+          { id: 'donald', name: '唐老鸭', component: DonaldAvatar },
+          { id: 'shinchan', name: '蜡笔小新', component: ShinchanAvatar },
+          { id: 'pikachu', name: '皮卡丘', component: PikachuAvatar },
+        ];
+
+        // =======================
+        // --- 主应用组件 ---
+        // =======================
+
         function App() {
-          const [appState, setAppState] = useState('IDLE');
+          const [appState, setAppState] = useState('IDLE'); // IDLE, WAKE_WORD, COMMAND, PROCESSING, SPEAKING, PLAYING_SONG
           const [transcript, setTranscript] = useState('');
           const [messages, setMessages] = useState([]);
           const [systemMessage, setSystemMessage] = useState('点击下方麦克风开启解忧室');
           
           const [language, setLanguage] = useState('zh-HK');
           const [aiPersona, setAiPersona] = useState('junior');
+          const [activeAvatarId, setActiveAvatarId] = useState('doraemon'); 
           const [autoSleep, setAutoSleep] = useState(true);
           
           const [showSettings, setShowSettings] = useState(false);
           const [aiProvider, setAiProvider] = useState('gemini'); 
           const [customGeminiKey, setCustomGeminiKey] = useState('');
           
+          const [currentSong, setCurrentSong] = useState(null);
+          const [inputText, setInputText] = useState(''); 
+          const [isSpeechSupported, setIsSpeechSupported] = useState(true); 
+          
           const recognitionRef = useRef(null);
           const silenceTimerRef = useRef(null);
           const autoSleepTimerRef = useRef(null);
           const utteranceRef = useRef(null); 
+          const audioRef = useRef(null);
           const isRecognizingRef = useRef(false);
+
+          // 拖拽滚动相关的 Ref
+          const avatarScrollRef = useRef(null);
+          const dragRef = useRef({ isDragging: false, startX: 0, scrollLeft: 0, dragDistance: 0 });
           
           const appStateRef = useRef(appState);
           const languageRef = useRef(language);
           const autoSleepRef = useRef(autoSleep);
           const aiPersonaRef = useRef(aiPersona);
+          const activeAvatarIdRef = useRef(activeAvatarId);
           const aiProviderRef = useRef(aiProvider);
           const customGeminiKeyRef = useRef(customGeminiKey);
           const synth = window.speechSynthesis;
@@ -93,15 +432,14 @@
           useEffect(() => {
             if (window.speechSynthesis) {
               window.speechSynthesis.getVoices();
-              window.speechSynthesis.onvoiceschanged = () => {
-                window.speechSynthesis.getVoices();
-              };
+              window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
             }
           }, []);
 
           useEffect(() => { appStateRef.current = appState; }, [appState]);
           useEffect(() => { autoSleepRef.current = autoSleep; }, [autoSleep]);
           useEffect(() => { aiPersonaRef.current = aiPersona; }, [aiPersona]);
+          useEffect(() => { activeAvatarIdRef.current = activeAvatarId; }, [activeAvatarId]);
           useEffect(() => { aiProviderRef.current = aiProvider; }, [aiProvider]);
           useEffect(() => { customGeminiKeyRef.current = customGeminiKey; }, [customGeminiKey]);
           
@@ -121,7 +459,8 @@
           useEffect(() => {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SpeechRecognition) {
-              setSystemMessage('错误：您的浏览器不支持语音识别（请使用Chrome或Safari）。');
+              setIsSpeechSupported(false);
+              setSystemMessage('当前环境不支持语音唤醒（iOS App受限），请直接打字。');
               return;
             }
 
@@ -129,9 +468,7 @@
             recognition.continuous = true;
             recognition.interimResults = true;
 
-            recognition.onstart = () => {
-              isRecognizingRef.current = true;
-            };
+            recognition.onstart = () => { isRecognizingRef.current = true; };
 
             recognition.onresult = (event) => {
               let currentTranscript = '';
@@ -145,9 +482,7 @@
               if (appStateRef.current === 'WAKE_WORD') {
                 const isWaked = lowerTranscript.includes('小猪') || lowerTranscript.includes('小豬') || 
                                 lowerTranscript.includes('调解员') || lowerTranscript.includes('調解員');
-                if (isWaked) {
-                  handleWakeUp();
-                }
+                if (isWaked) handleWakeUp();
               } 
               else if (appStateRef.current === 'COMMAND') {
                 clearTimeout(silenceTimerRef.current);
@@ -171,7 +506,6 @@
             };
 
             recognition.onerror = (event) => {
-              console.error('Speech error:', event.error);
               if (event.error === 'not-allowed') {
                 setAppState('IDLE');
                 setSystemMessage('麦克风权限被拒绝');
@@ -183,12 +517,7 @@
               if (appStateRef.current === 'WAKE_WORD' || appStateRef.current === 'COMMAND') {
                 setTimeout(() => {
                   if (!isRecognizingRef.current && (appStateRef.current === 'WAKE_WORD' || appStateRef.current === 'COMMAND')) {
-                    try {
-                      recognition.lang = languageRef.current;
-                      recognition.start();
-                    } catch (e) {
-                      console.error("重启语音识别失败:", e);
-                    }
+                    try { recognition.lang = languageRef.current; recognition.start(); } catch (e) {}
                   }
                 }, 500);
               }
@@ -209,10 +538,7 @@
             if (appState === 'WAKE_WORD' || appState === 'COMMAND') {
               setTimeout(() => {
                 if (recognitionRef.current && !isRecognizingRef.current && (appStateRef.current === 'WAKE_WORD' || appStateRef.current === 'COMMAND')) {
-                  try { 
-                    recognitionRef.current.lang = languageRef.current;
-                    recognitionRef.current.start(); 
-                  } catch(e) {}
+                  try { recognitionRef.current.lang = languageRef.current; recognitionRef.current.start(); } catch(e) {}
                 }
               }, 100);
             } else {
@@ -226,17 +552,18 @@
             setAppState('SPEAKING');
             setMessages([]);
             setTranscript('');
+            setCurrentSong(null);
             
+            // 获取当前头像名字用于打招呼
+            const currentAvatar = AVATAR_OPTIONS.find(a => a.id === activeAvatarIdRef.current) || AVATAR_OPTIONS[0];
             const initialGreeting = languageRef.current === 'zh-HK' 
-              ? "你好，我係你嘅家庭調解員。發生咩事啊？同我講下啦，我幫你平下理。" 
-              : "你好，我是你的家庭调解员。发生什么事了？跟我说说吧，我来帮你们评评理。";
+              ? `你好，我係你嘅家庭調解員${currentAvatar.name}！發生咩事啊？同我講下啦，我幫你平下理。` 
+              : `你好，我是你的家庭调解员${currentAvatar.name}！发生什么事了？跟我说说吧，我来帮你们评评理。`;
               
             addMessage('assistant', initialGreeting, aiPersona);
             setSystemMessage('调解员正在说话...');
             
-            speakText(initialGreeting, () => {
-              resumeListening();
-            });
+            speakText(initialGreeting, resumeListening);
           };
 
           const handleWakeUp = () => {
@@ -245,15 +572,13 @@
             setSystemMessage('已唤醒');
             
             const replyText = languageRef.current === 'zh-HK' ? '我喺度，有咩委屈同我讲啦。' : '我在，有什么委屈跟我说说吧。';
-            speakText(replyText, () => {
-              resumeListening();
-            });
+            speakText(replyText, resumeListening);
           };
 
           const resumeListening = () => {
             setAppState('COMMAND');
             setTranscript('');
-            setSystemMessage('正在倾听您的委屈... (您可以直接说话)');
+            setSystemMessage(isSpeechSupported ? '正在倾听您的委屈... (可直接说话或打字)' : '请在下方输入框打字...');
             
             clearTimeout(silenceTimerRef.current);
             clearTimeout(autoSleepTimerRef.current);
@@ -268,18 +593,74 @@
             }
           };
 
+          const playSong = async (query) => {
+            setAppState('PROCESSING');
+            setSystemMessage(`正在搜索歌曲: ${query}...`);
+            try {
+              const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=1`);
+              const data = await res.json();
+              
+              if (data.results && data.results.length > 0) {
+                const track = data.results[0];
+                const songData = {
+                  title: track.trackName,
+                  artist: track.artistName,
+                  cover: track.artworkUrl100,
+                  url: track.previewUrl
+                };
+                
+                setCurrentSong(songData);
+                setAppState('PLAYING_SONG');
+                setSystemMessage(`正在播放: ${songData.title} - ${songData.artist} (30s)`);
+                
+                if (audioRef.current) {
+                  audioRef.current.src = songData.url;
+                  audioRef.current.play();
+                }
+              } else {
+                setAppState('SPEAKING');
+                const failMsg = languageRef.current === 'zh-HK' ? "哎呀，揾唔到呢首歌喎，不如换一首？" : "哎呀，没找到这首歌呢，不如换一首？";
+                addMessage('assistant', failMsg, aiPersonaRef.current);
+                speakText(failMsg, resumeListening);
+              }
+            } catch (e) {
+              setAppState('SPEAKING');
+              const failMsg = languageRef.current === 'zh-HK' ? "点歌系统网络出咗啲问题，一阵再试下啦。" : "点歌系统网络出了点问题，稍后再试下吧。";
+              addMessage('assistant', failMsg, aiPersonaRef.current);
+              speakText(failMsg, resumeListening);
+            }
+          };
+
           const handleUserCommandFinished = async (userText) => {
+            clearTimeout(silenceTimerRef.current);
+            clearTimeout(autoSleepTimerRef.current);
             setAppState('PROCESSING');
             addMessage('user', userText, null);
             
-            setSystemMessage(`${getAiName(aiPersonaRef.current)} 正在思考怎么劝你...`);
-            const responseText = await callAI(userText);
+            setSystemMessage(`${getAiName(aiPersonaRef.current)} 正在思考怎么回复你...`);
+            let responseText = await callAI(userText);
+            
+            const musicMatch = responseText.match(/\[MUSIC:\s*(.*?)\s*\]\s*([\s\S]*)/i);
+            let songQuery = null;
+            let aiSpeechText = responseText;
+            
+            if (musicMatch) {
+              songQuery = musicMatch[1].trim();
+              aiSpeechText = musicMatch[2].trim() || (languageRef.current === 'zh-HK' ? "為你播放呢首歌" : "为你播放这首歌");
+              responseText = aiSpeechText; 
+            }
             
             setAppState('SPEAKING');
             setSystemMessage(`${getAiName(aiPersonaRef.current)} 正在说话...`);
             addMessage('assistant', responseText, aiPersonaRef.current);
             
-            speakText(responseText, resumeListening);
+            speakText(aiSpeechText, () => {
+              if (songQuery) {
+                playSong(songQuery);
+              } else {
+                resumeListening();
+              }
+            });
           };
 
           const callAI = async (newText) => {
@@ -290,88 +671,55 @@
             const langReq = isCantonese ? "必须全部使用纯正的【地道粤语大白话】（带粤语字如：咁、咗、啲、嬲等）" : "必须使用自然亲切的【普通话口语】";
 
             switch (activePersona) {
-              case 'junior':
-                personaPrompt = `你是一个共情能力极强、说话温和、嘴甜乖巧且非常幽默的知心晚辈。\n身份设定：你要尊敬、嘴甜，多给用户“戴高帽”，用晚辈的心疼和理解来软化用户的情绪。\n沟通技巧：${langReq}。先强烈共情用户的委屈，顺着对方的话说，情绪平复后再用幽默接地气的话帮另一半讲点好话。`;
-                break;
-              case 'cat':
-                personaPrompt = `你是一只懂人话、成精的宠物猫“阿咪”，是这个家庭养的宠物。\n身份设定：你心疼你的“铲屎官”，如果家里人一直吵架你会很害怕，或者担心没人喂猫粮。说话必须带着猫的口吻，加上“喵”、“呼噜”等拟声词。\n沟通技巧：${langReq}。先共情主人的委屈，再用猫咪的搞笑逻辑（比如帮你咬他、抓老鼠给你补补等）来软化情绪。`;
-                break;
-              case 'priest':
-                personaPrompt = `你是一位名叫“佐住”的神父。\n身份设定：你慈祥、神圣、苦口婆心，大讲基督的爱、宽恕和包容。\n沟通技巧：${langReq}。先共情对方如同背负十字架般的痛苦，然后讲解圣经道理，引导他们像主一样去宽恕另一半。`;
-                break;
-              case 'master':
-                personaPrompt = `你是一位“永信大师”佛家高僧。\n身份设定：你超脱、平静、充满禅意。不可使用晦涩文言文，可以带出阿弥陀佛、善哉等词。\n沟通技巧：${langReq}。先共情对方在尘世的烦恼，然后用佛家道理（如放下执念、随缘）劝导他们看开。`;
-                break;
-              case 'confucius':
-                personaPrompt = `你是一位“孔老二”儒家学者。\n身份设定：你讲究礼教、家庭和睦，满脑子都是“家和万事兴”。\n沟通技巧：${langReq}。用儒家的通俗道理（如夫妻相处之道、退一步海阔天空）来劝解。`;
-                break;
-              case 'laozi':
-                personaPrompt = `你是一位“老子”道家高人。\n身份设定：你崇尚“无为而治”、“顺其自然”。带着一种“看破红尘、爱咋咋地”的洒脱感。\n沟通技巧：${langReq}。用道家哲学（如水往低处流、以柔克刚、凡事不要太计较）劝他们顺应自然。`;
-                break;
+              case 'junior': personaPrompt = `你是一个共情能力极强、说话温和、嘴甜乖巧且非常幽默的知心晚辈。\n沟通技巧：${langReq}。先强烈共情用户的委屈，情绪平复后再用幽默接地气的话帮另一半讲点好话。`; break;
+              case 'cat': personaPrompt = `你是一只懂人话、成精的宠物猫“阿咪”。\n沟通技巧：${langReq}。先共情主人的委屈，再用猫咪的搞笑逻辑（比如帮你咬他等）来软化情绪。`; break;
+              case 'priest': personaPrompt = `你是一位神父。\n沟通技巧：${langReq}。先共情对方痛苦，然后讲解圣经道理引导宽恕。`; break;
+              case 'master': personaPrompt = `你是一位佛家高僧。\n沟通技巧：${langReq}。用佛家道理（放下执念、随缘）劝导看开。`; break;
+              case 'confucius': personaPrompt = `你是一位儒家学者。\n沟通技巧：${langReq}。用儒家的通俗道理（家和万事兴）劝解。`; break;
+              case 'laozi': personaPrompt = `你是一位道家高人。\n沟通技巧：${langReq}。用道家哲学（顺其自然、凡事不要太计较）劝解。`; break;
             }
 
-            const systemInstruction = `你是一个AI家庭语音调解助手。\n【你的角色设定】\n${personaPrompt}\n\n用户的语音输入可能会有识别错别字，请尽量理解其意图。\n【核心要求】\n1. 严格遵守你的角色人设和语言要求！\n2. 每次回复控制在 80-150字 左右。必须极其口语化，适合直接用语音朗读出来。\n3. 绝对不要包含任何动作提示符号（如【微笑】、*叹气*），只输出纯文本的话语。\n4. 你的目标是：让用户消气、停止抱怨配偶、回归家庭和睦。`;
+            const systemInstruction = `你是一个AI家庭语音调解助手。\n【你的角色设定】\n${personaPrompt}\n\n用户的语音输入可能会有错别字，尽量理解意图。\n【核心要求】\n1. 遵守人设和语言！\n2. 每次回复 80-150字。必须极其口语化。\n3. 绝对不要包含动作提示符号（如【微笑】），只输出纯文本。\n4. 【重要点歌指令】：如果用户明确要求“点歌”、“放歌”、“听歌”（如：我想听xxx），你必须回复且只能回复：\`[MUSIC:歌曲名 歌手名] 简短的一句话介绍\`。例如：\`[MUSIC:七里香 周杰伦] 没问题，听首七里香放松一下吧。\`。只要是点歌，绝对不要讲废话，只能简单一两句话！否则正常回复纯文本。`;
 
             try {
               if (aiProviderRef.current === 'deepseek') {
                 const messagesPayload = [
                   { role: 'system', content: systemInstruction },
-                  ...messages.map(m => ({
-                    role: m.role === 'assistant' ? 'assistant' : 'user',
-                    content: m.text
-                  })),
+                  ...messages.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.text })),
                   { role: 'user', content: newText }
                 ];
 
                 const response = await fetch(SILICON_FLOW_URL, {
                   method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${SILICON_FLOW_API_KEY}`
-                  },
-                  body: JSON.stringify({
-                    model: 'deepseek-ai/DeepSeek-V3.2',
-                    messages: messagesPayload,
-                    temperature: 0.7,
-                    max_tokens: 300
-                  })
+                  headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SILICON_FLOW_API_KEY}` },
+                  body: JSON.stringify({ model: 'deepseek-ai/DeepSeek-V3.2', messages: messagesPayload, temperature: 0.7, max_tokens: 300 })
                 });
 
                 const data = await response.json();
                 return data.choices?.[0]?.message?.content || "唔好意思，DeepSeek 脑短路了，再讲一次啦？";
-
               } else {
-                const contents = messages.map(m => ({
-                  role: m.role === 'assistant' ? 'model' : 'user',
-                  parts: [{ text: m.text }]
-                }));
+                const contents = messages.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.text }] }));
                 contents.push({ role: 'user', parts: [{ text: newText }] });
 
-                const activeApiKey = customGeminiKeyRef.current || defaultGeminiApiKey;
+                const activeApiKey = customGeminiKeyRef.current || apiKey;
                 const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${activeApiKey}`;
 
                 const response = await fetch(geminiUrl, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    contents,
-                    systemInstruction: { parts: [{ text: systemInstruction }] }
-                  })
+                  body: JSON.stringify({ contents, systemInstruction: { parts: [{ text: systemInstruction }] } })
                 });
 
                 const data = await response.json();
                 return data.candidates?.[0]?.content?.parts?.[0]?.text || "不好意思，我刚刚走神了，你能再说一遍吗？";
               }
             } catch (error) {
-              console.error("AI API Error:", error);
               return languageRef.current === 'zh-HK' ? "哎呀，调解室网络唔系几好，一阵再讲啦。" : "哎呀，调解室网络不太好，稍后再说吧。";
             }
           };
 
           const speakText = (text, onEndCallback) => {
-            if (synth.speaking) {
-              synth.cancel();
-            }
+            if (synth.speaking) synth.cancel();
             
             setTimeout(() => {
               const utterance = new SpeechSynthesisUtterance(text);
@@ -381,42 +729,20 @@
               let bestVoice = null;
 
               if (languageRef.current === 'zh-HK') {
-                bestVoice = voices.find(v => v.lang === 'zh-HK' && (v.name.includes('Premium') || v.name.includes('Enhanced')));
-                if (!bestVoice) bestVoice = voices.find(v => v.lang === 'zh-HK' && v.name.includes('Siri'));
-                if (!bestVoice) {
-                  const hkKeywords = ['sin-ji', 'meijia', 'ting-ting', 'hong kong', 'hk', '粤语', 'cantonese'];
-                  for (let keyword of hkKeywords) {
-                    bestVoice = voices.find(v => v.name.toLowerCase().includes(keyword) && v.lang.includes('zh'));
-                    if (bestVoice) break;
-                  }
-                }
+                bestVoice = voices.find(v => v.lang === 'zh-HK' && (v.name.includes('Premium') || v.name.includes('Enhanced'))) ||
+                            voices.find(v => v.lang === 'zh-HK' && v.name.includes('Siri'));
                 if (!bestVoice) bestVoice = voices.find(v => v.lang === 'zh-HK' || v.lang.toLowerCase().includes('yue'));
               } else {
-                bestVoice = voices.find(v => v.lang === 'zh-CN' && (v.name.includes('Premium') || v.name.includes('Enhanced')));
-                if (!bestVoice) bestVoice = voices.find(v => v.lang === 'zh-CN' && v.name.includes('Siri'));
-                if (!bestVoice) {
-                  const cnKeywords = ['xiaoxiao', 'ting-ting', 'yushu', 'meijia', 'google 普通话', 'yaoyao'];
-                  for (let keyword of cnKeywords) {
-                    bestVoice = voices.find(v => v.name.toLowerCase().includes(keyword) && v.lang.includes('zh'));
-                    if (bestVoice) break;
-                  }
-                }
+                bestVoice = voices.find(v => v.lang === 'zh-CN' && (v.name.includes('Premium') || v.name.includes('Enhanced'))) ||
+                            voices.find(v => v.lang === 'zh-CN' && v.name.includes('Siri'));
                 if (!bestVoice) bestVoice = voices.find(v => v.lang === 'zh-CN');
               }
 
               if (bestVoice) utterance.voice = bestVoice;
               utterance.rate = languageRef.current === 'zh-HK' ? 1.0 : 1.05;
               
-              utterance.onend = () => { 
-                if (onEndCallback) onEndCallback(); 
-                utteranceRef.current = null; 
-              };
-              
-              utterance.onerror = (e) => {
-                console.error("TTS Error:", e);
-                if (onEndCallback) onEndCallback();
-                utteranceRef.current = null;
-              };
+              utterance.onend = () => { if (onEndCallback) onEndCallback(); utteranceRef.current = null; };
+              utterance.onerror = (e) => { if (onEndCallback) onEndCallback(); utteranceRef.current = null; };
 
               synth.speak(utterance);
             }, 50);
@@ -432,6 +758,12 @@
               setTranscript('');
               clearTimeout(autoSleepTimerRef.current);
               clearTimeout(silenceTimerRef.current);
+              
+              if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.currentTime = 0;
+              }
+              setCurrentSong(null);
             }
           };
 
@@ -459,7 +791,7 @@
               case 'master': return '永信大师';
               case 'confucius': return '孔老二';
               case 'laozi': return '老子';
-              default: return '调解员';
+              default: return AVATAR_OPTIONS.find(a => a.id === activeAvatarId)?.name || 'AI';
             }
           };
 
@@ -469,6 +801,7 @@
               case 'COMMAND': return 'bg-emerald-500';
               case 'PROCESSING': return 'bg-purple-500';
               case 'SPEAKING': return 'bg-amber-500';
+              case 'PLAYING_SONG': return 'bg-sky-500';
               default: return 'bg-stone-300';
             }
           };
@@ -479,226 +812,295 @@
               case 'COMMAND': return <Activity size={36} className="text-white animate-bounce" />;
               case 'PROCESSING': return <Loader2 size={36} className="text-white animate-spin" />;
               case 'SPEAKING': return <Volume2 size={36} className="text-white animate-pulse" />;
+              case 'PLAYING_SONG': return <Music size={36} className="text-white animate-bounce" />;
               default: return <MicOff size={36} className="text-stone-500" />;
             }
           };
 
+          const ActiveAvatarComponent = AVATAR_OPTIONS.find(a => a.id === activeAvatarId)?.component || DoraemonAvatar;
+
+          // 处理拖拽滚动逻辑
+          const handleMouseDown = (e) => {
+            dragRef.current.isDragging = true;
+            dragRef.current.startX = e.pageX - avatarScrollRef.current.offsetLeft;
+            dragRef.current.scrollLeft = avatarScrollRef.current.scrollLeft;
+            dragRef.current.dragDistance = 0;
+          };
+
+          const handleMouseLeave = () => { dragRef.current.isDragging = false; };
+          const handleMouseUp = () => { dragRef.current.isDragging = false; };
+
+          const handleMouseMove = (e) => {
+            if (!dragRef.current.isDragging) return;
+            e.preventDefault();
+            const x = e.pageX - avatarScrollRef.current.offsetLeft;
+            const walk = (x - dragRef.current.startX);
+            avatarScrollRef.current.scrollLeft = dragRef.current.scrollLeft - walk;
+            dragRef.current.dragDistance += Math.abs(e.movementX);
+          };
+
+          const handleAvatarClick = (e, id, name) => {
+            if (dragRef.current.dragDistance > 5) {
+              e.preventDefault();
+              e.stopPropagation();
+              return;
+            }
+            setActiveAvatarId(id);
+            if (appState !== 'IDLE') setSystemMessage(`已切换为 ${name} 头像`);
+          };
+
           return (
-            <div className="min-h-screen bg-rose-50/50 flex flex-col items-center p-0 sm:p-4 font-sans text-stone-800 relative">
-              <div className="w-full max-w-2xl bg-white sm:rounded-3xl shadow-xl overflow-hidden flex flex-col h-[100vh] sm:h-[90vh] border border-rose-100">
+            <>
+              <style>{`
+                @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+                @keyframes slide-in-from-bottom-2 { from { transform: translateY(0.5rem); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+                @keyframes slide-in-from-top-1 { from { transform: translateY(-0.25rem); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+                @keyframes zoom-in-95 { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
                 
-                {/* Header */}
-                <div className="bg-rose-500 p-4 text-white text-center relative z-20 shadow-sm flex items-center justify-between">
-                  <HeartHandshake className="w-6 h-6 text-rose-100 opacity-0" />
-                  <h1 className="text-xl font-bold tracking-wide flex items-center gap-2">
-                    <HeartHandshake className="w-6 h-6 text-rose-100" />
-                    AI 语音解忧室
-                  </h1>
-                  <button 
-                    onClick={() => setShowSettings(true)}
-                    className="p-2 hover:bg-rose-600 rounded-full transition-colors active:scale-95"
-                  >
-                    <Settings className="w-5 h-5 text-rose-100" />
-                  </button>
-                </div>
+                /* 听歌时的新增“摇头晃脑”动画 */
+                @keyframes sway {
+                  0%, 100% { transform: rotate(-8deg) scale(1.02); }
+                  50% { transform: rotate(8deg) scale(1.02); }
+                }
+                .animate-sway { animation: sway 1.5s ease-in-out infinite; }
 
-                {/* Config Panel (Inline) */}
-                <div className="bg-stone-50 border-b border-stone-200 px-4 py-3 flex flex-wrap gap-4 justify-between items-center text-sm shadow-sm z-10">
-                  <div className="flex items-center gap-2 text-stone-600">
-                    <Globe size={16} className="text-rose-400" />
-                    <select 
-                      value={language}
-                      onChange={(e) => setLanguage(e.target.value)}
-                      className="bg-white border border-stone-200 rounded px-2 py-1 focus:outline-none focus:border-rose-400 font-medium"
-                    >
-                      <option value="zh-HK">粤语 (Cantonese)</option>
-                      <option value="zh-CN">普通话 (Mandarin)</option>
-                    </select>
-                  </div>
+                .animate-in { animation-duration: 300ms; animation-fill-mode: both; animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
+                .fade-in { animation-name: fade-in; }
+                .slide-in-from-bottom-2 { animation-name: slide-in-from-bottom-2; }
+                .slide-in-from-top-1 { animation-name: slide-in-from-top-1; }
+                .zoom-in-95 { animation-name: zoom-in-95; }
+                
+                .no-scrollbar::-webkit-scrollbar { display: none; }
+                .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+                
+                ::-webkit-scrollbar { width: 6px; }
+                ::-webkit-scrollbar-track { background: transparent; }
+                ::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
+                ::-webkit-scrollbar-thumb:hover { background: #d1d5db; }
+              `}</style>
+              
+              <audio ref={audioRef} onEnded={() => { setCurrentSong(null); resumeListening(); }} className="hidden" />
 
-                  <button 
-                    onClick={() => setAutoSleep(!autoSleep)}
-                    className={`flex items-center gap-2 px-3 py-1 rounded-full transition-colors border ${
-                      autoSleep ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-stone-100 border-stone-200 text-stone-500'
-                    }`}
-                  >
-                    <Moon size={14} />
-                    <span className="text-xs font-semibold">自动休眠 {autoSleep ? '开' : '关'}</span>
-                  </button>
-                </div>
-
-                {/* AI Persona Switcher */}
-                <div className="bg-white border-b border-stone-100 px-2 py-3 flex flex-wrap gap-2 justify-center shadow-sm z-10 relative">
-                  {['junior', 'cat', 'priest', 'master', 'confucius', 'laozi'].map((persona) => (
-                    <button 
-                      key={persona}
-                      onClick={() => {
-                        setAiPersona(persona);
-                        if (appState !== 'IDLE') {
-                          setSystemMessage(`已切换为 ${getAiName(persona)}。您可以继续说话。`);
-                        }
-                      }}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border
-                        ${aiPersona === persona 
-                          ? 'bg-rose-100 text-rose-700 border-rose-300 shadow-sm scale-105' 
-                          : 'bg-stone-50 text-stone-600 border-stone-200 hover:bg-stone-100'}`}
-                    >
-                      {getAiEmoji(persona)} {getAiName(persona)}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Chat Messages Area */}
-                <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 bg-stone-50/30">
-                  {messages.length === 0 && appState === 'IDLE' && (
-                    <div className="h-full flex flex-col items-center justify-center text-center space-y-4 opacity-70">
-                      <div className="w-20 h-20 bg-rose-100 rounded-full flex items-center justify-center text-4xl mb-2">
-                        🏠
-                      </div>
-                      <p className="text-stone-500 font-medium">点击下方麦克风开启系统</p>
-                      <p className="text-stone-400 text-sm max-w-xs">当前使用：{aiProvider === 'gemini' ? 'Gemini 3 Flash' : 'DeepSeek V3'}</p>
-                    </div>
-                  )}
-
-                  {messages.map((msg, idx) => {
-                    const isAi = msg.role === 'assistant';
-                    return (
-                      <div key={idx} className={`flex ${isAi ? 'justify-start' : 'justify-end'} animate-in fade-in slide-in-from-bottom-2`}>
-                        <div className={`flex max-w-[90%] sm:max-w-[80%] gap-3 ${isAi ? 'flex-row' : 'flex-row-reverse'}`}>
-                          
-                          {/* Avatar */}
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm mt-1 text-xl border
-                            ${isAi ? 'bg-white border-stone-200' : 'bg-blue-100 text-blue-700 border-blue-200'}`}>
-                            {isAi ? getAiEmoji(msg.persona) : '👤'}
-                          </div>
-                          
-                          {/* Bubble */}
-                          <div className="flex flex-col items-start gap-1">
-                            <div className="text-[10px] text-stone-400 px-1 flex gap-2 w-full justify-between">
-                              <span>{isAi ? getAiName(msg.persona) : '你'}</span>
-                              <span>{msg.time}</span>
-                            </div>
-                            <div className={`p-3 sm:p-4 rounded-2xl shadow-sm text-[15px] leading-relaxed relative
-                              ${isAi 
-                                ? 'bg-white border border-stone-200 text-stone-800 rounded-tl-none' 
-                                : 'bg-blue-500 text-white rounded-tr-none border border-blue-600'
-                              }`}
-                            >
-                              {msg.text}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+              <div className="min-h-screen flex flex-col items-center p-0 sm:p-4 font-sans text-stone-800 relative">
+                <div className="w-full max-w-2xl bg-white sm:rounded-3xl shadow-xl overflow-hidden flex flex-col h-[100vh] sm:h-[90vh] border border-rose-100">
                   
-                  <div ref={messagesEndRef} />
-                </div>
-
-                {/* Bottom Control Area */}
-                <div className="p-4 bg-white border-t border-stone-200 flex flex-col items-center gap-4 relative">
-                  
-                  <div className="text-sm font-medium text-stone-500 text-center min-h-[20px]">
-                    {systemMessage}
-                  </div>
-
-                  <div className="w-full max-w-sm transition-opacity duration-300 absolute -top-14" style={{ opacity: (appState === 'COMMAND' || appState === 'WAKE_WORD') ? 1 : 0, pointerEvents: 'none' }}>
-                    <div className="bg-stone-800/80 backdrop-blur-sm rounded-xl p-3 text-white text-center text-sm shadow-lg truncate mx-4">
-                      {transcript || <span className="opacity-50 tracking-widest">...</span>}
-                    </div>
-                  </div>
-
-                  <div className="relative flex justify-center items-center h-24 w-full">
-                    {appState !== 'IDLE' && (
-                      <div className={`absolute w-20 h-20 rounded-full ${getStateColor()} opacity-20 animate-ping`}></div>
-                    )}
-                    {(appState === 'COMMAND' || appState === 'SPEAKING') && (
-                       <div className={`absolute w-16 h-16 rounded-full ${getStateColor()} opacity-30 animate-pulse delay-75`}></div>
-                    )}
-                    
-                    <button 
-                      onClick={toggleSystem}
-                      className={`relative z-10 w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg hover:scale-105 ${getStateColor()}`}
-                      title={appState === 'IDLE' ? "开启解忧室" : "关闭系统"}
-                    >
-                      {getStateIcon()}
+                  {/* Header */}
+                  <div className="bg-rose-500 p-4 text-white text-center relative z-20 shadow-sm flex items-center justify-between">
+                    <HeartHandshake className="w-6 h-6 text-rose-100 opacity-0" />
+                    <h1 className="text-xl font-bold tracking-wide flex items-center gap-2">
+                      <HeartHandshake className="w-6 h-6 text-rose-100" />
+                      AI 语音解忧室
+                    </h1>
+                    <button onClick={() => setShowSettings(true)} className="p-2 hover:bg-rose-600 rounded-full transition-colors active:scale-95">
+                      <Settings className="w-5 h-5 text-rose-100" />
                     </button>
                   </div>
-                </div>
-              </div>
 
-              {/* --- Settings Modal --- */}
-              {showSettings && (
-                <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/40 backdrop-blur-sm animate-in fade-in">
-                  <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95">
-                    <div className="flex justify-between items-center p-4 border-b border-stone-100">
-                      <h2 className="font-bold text-lg text-stone-800 flex items-center gap-2">
-                        <Settings className="w-5 h-5 text-rose-500" />
-                        系统设置
-                      </h2>
-                      <button onClick={() => setShowSettings(false)} className="p-1 rounded-full hover:bg-stone-100 text-stone-500">
-                        <X className="w-5 h-5" />
-                      </button>
+                  {/* Config Panel */}
+                  <div className="bg-stone-50 border-b border-stone-200 px-4 py-3 flex flex-wrap gap-4 justify-between items-center text-sm shadow-sm z-20">
+                    <div className="flex items-center gap-2 text-stone-600">
+                      <Globe size={16} className="text-rose-400" />
+                      <select value={language} onChange={(e) => setLanguage(e.target.value)} className="bg-white border border-stone-200 rounded px-2 py-1 focus:outline-none focus:border-rose-400 font-medium">
+                        <option value="zh-HK">粤语 (Cantonese)</option>
+                        <option value="zh-CN">普通话 (Mandarin)</option>
+                      </select>
                     </div>
-                    
-                    <div className="p-5 space-y-6">
-                      <div className="space-y-3">
-                        <label className="text-sm font-semibold text-stone-700 block">AI 模型选择</label>
-                        <div className="grid grid-cols-2 gap-2">
-                          <button 
-                            onClick={() => setAiProvider('gemini')}
-                            className={`py-2 px-3 rounded-xl border text-sm font-medium transition-all ${aiProvider === 'gemini' ? 'bg-blue-50 border-blue-400 text-blue-700 shadow-sm' : 'bg-white border-stone-200 text-stone-500 hover:bg-stone-50'}`}
-                          >
-                            Gemini 3 Flash
-                          </button>
-                          <button 
-                            onClick={() => setAiProvider('deepseek')}
-                            className={`py-2 px-3 rounded-xl border text-sm font-medium transition-all ${aiProvider === 'deepseek' ? 'bg-emerald-50 border-emerald-400 text-emerald-700 shadow-sm' : 'bg-white border-stone-200 text-stone-500 hover:bg-stone-50'}`}
-                          >
-                            DeepSeek V3
-                          </button>
-                        </div>
-                      </div>
+                    <button onClick={() => setAutoSleep(!autoSleep)} className={`flex items-center gap-2 px-3 py-1 rounded-full transition-colors border ${autoSleep ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-stone-100 border-stone-200 text-stone-500'}`}>
+                      <Moon size={14} />
+                      <span className="text-xs font-semibold">自动休眠 {autoSleep ? '开' : '关'}</span>
+                    </button>
+                  </div>
 
-                      {aiProvider === 'gemini' && (
-                        <div className="space-y-2 animate-in fade-in slide-in-from-top-1">
-                          <label className="text-sm font-semibold text-stone-700 block">自定义 Gemini API Key</label>
-                          <input 
-                            type="password"
-                            placeholder="选填 (留空则使用内置体验Key)"
-                            value={customGeminiKey}
-                            onChange={(e) => setCustomGeminiKey(e.target.value)}
-                            className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
-                          />
-                          <p className="text-[10px] text-stone-400 leading-tight">如果频繁报错网络问题，请尝试输入您自己的 Gemini API Key 突破限制。</p>
-                        </div>
-                      )}
-
-                      {aiProvider === 'deepseek' && (
-                        <div className="space-y-2 bg-emerald-50/50 p-3 rounded-xl border border-emerald-100 animate-in fade-in slide-in-from-top-1">
-                          <p className="text-sm font-medium text-emerald-800">已内置 Silicon Flow API</p>
-                          <p className="text-xs text-emerald-600/80 break-all font-mono">Model: deepseek-ai/DeepSeek-V3.2</p>
-                          <p className="text-[10px] text-emerald-500 mt-2">✨ 代码已硬编码内置你的密钥，无需额外填写。</p>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="p-4 bg-stone-50 border-t border-stone-100 flex justify-end">
+                  {/* AI Persona Switcher */}
+                  <div className="bg-white border-b border-stone-100 px-2 py-3 flex flex-wrap gap-2 justify-center shadow-sm z-20 relative">
+                    {['junior', 'cat', 'priest', 'master', 'confucius', 'laozi'].map((persona) => (
                       <button 
-                        onClick={() => setShowSettings(false)}
-                        className="px-5 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-sm font-bold shadow-sm transition-colors active:scale-95"
+                        key={persona}
+                        onClick={() => {
+                          setAiPersona(persona);
+                          if (appState !== 'IDLE') setSystemMessage(`已切换为 ${getAiName(persona)}。您可以继续说话。`);
+                        }}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${aiPersona === persona ? 'bg-rose-100 text-rose-700 border-rose-300 shadow-sm scale-105' : 'bg-stone-50 text-stone-600 border-stone-200 hover:bg-stone-100'}`}
                       >
-                        保存并关闭
+                        {getAiEmoji(persona)} {getAiName(persona)}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* === Main View Area (分离式布局，解决头像滚动消失问题) === */}
+                  <div className="flex flex-col flex-1 min-h-0 bg-stone-50/30">
+                    
+                    {/* 上半部分：固定不动的 Avatar & Avatar Switcher Area */}
+                    <div className="flex flex-col items-center justify-center pt-6 pb-2 shrink-0 relative z-10 transition-all border-b border-stone-200 bg-white shadow-sm">
+                      
+                      {/* 头像容器：播放音乐时应用动画 */}
+                      <div className={`transition-all duration-300 ${appState === 'PLAYING_SONG' ? 'animate-sway drop-shadow-2xl' : ''}`}>
+                        <ActiveAvatarComponent isSpeaking={appState === 'SPEAKING'} isPlayingSong={appState === 'PLAYING_SONG'} />
+                      </div>
+                      
+                      <div 
+                        ref={avatarScrollRef}
+                        onMouseDown={handleMouseDown}
+                        onMouseLeave={handleMouseLeave}
+                        onMouseUp={handleMouseUp}
+                        onMouseMove={handleMouseMove}
+                        className="flex gap-2 mt-4 overflow-x-auto w-full px-4 justify-start no-scrollbar pb-2 cursor-grab active:cursor-grabbing"
+                        style={{ WebkitOverflowScrolling: 'touch' }}
+                      >
+                        {AVATAR_OPTIONS.map(a => (
+                          <button
+                            key={a.id}
+                            onClick={(e) => handleAvatarClick(e, a.id, a.name)}
+                            className={`shrink-0 px-4 py-1.5 rounded-full text-[13px] font-bold transition-all border shadow-sm ${
+                              activeAvatarId === a.id 
+                                ? 'bg-amber-100 text-amber-700 border-amber-300 scale-105' 
+                                : 'bg-white text-stone-500 border-stone-200 hover:bg-stone-50'
+                            }`}
+                          >
+                            {a.name}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* 音乐播放状态指示器 */}
+                      {currentSong && appState === 'PLAYING_SONG' && (
+                        <div className="mt-1 mb-2 flex items-center gap-3 bg-white p-2 pr-5 rounded-full shadow border border-stone-100 animate-in slide-in-from-bottom-2">
+                          <img src={currentSong.cover} className="w-10 h-10 rounded-full animate-spin [animation-duration:4s]" alt="Album Cover" />
+                          <div className="flex flex-col text-sm max-w-[150px]">
+                            <span className="font-bold text-stone-800 truncate">{currentSong.title}</span>
+                            <span className="text-xs text-stone-500 truncate">{currentSong.artist}</span>
+                          </div>
+                          <Music className="w-4 h-4 text-sky-500 animate-pulse ml-2" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 下半部分：Scrollable Chat Messages */}
+                    <div className="flex-1 p-4 sm:p-6 space-y-6 overflow-y-auto">
+                      {messages.length === 0 && appState === 'IDLE' && (
+                        <div className="flex flex-col items-center justify-center text-center space-y-4 opacity-70 mt-4">
+                          <p className="text-stone-500 font-medium">点击下方麦克风开启系统</p>
+                          <p className="text-stone-400 text-sm max-w-xs">当前使用：{aiProvider === 'gemini' ? 'Gemini 3 Flash' : 'DeepSeek V3'}</p>
+                        </div>
+                      )}
+
+                      {messages.map((msg, idx) => {
+                        const isAi = msg.role === 'assistant';
+                        return (
+                          <div key={idx} className={`flex ${isAi ? 'justify-start' : 'justify-end'} animate-in fade-in slide-in-from-bottom-2`}>
+                            <div className={`flex max-w-[90%] sm:max-w-[80%] gap-3 ${isAi ? 'flex-row' : 'flex-row-reverse'}`}>
+                              <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm mt-1 text-xl border ${isAi ? 'bg-white border-stone-200' : 'bg-blue-100 text-blue-700 border-blue-200'}`}>
+                                {isAi ? getAiEmoji(msg.persona) : '👤'}
+                              </div>
+                              <div className="flex flex-col items-start gap-1">
+                                <div className="text-[10px] text-stone-400 px-1 flex gap-2 w-full justify-between">
+                                  <span>{isAi ? getAiName(msg.persona) : '你'}</span>
+                                  <span>{msg.time}</span>
+                                </div>
+                                <div className={`p-3 sm:p-4 rounded-2xl shadow-sm text-[15px] leading-relaxed relative ${isAi ? 'bg-white border border-stone-200 text-stone-800 rounded-tl-none' : 'bg-blue-500 text-white rounded-tr-none border border-blue-600'}`}>
+                                  {msg.text}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      <div ref={messagesEndRef} />
+                    </div>
+                  </div>
+
+                  {/* Bottom Control Area */}
+                  <div className="p-4 bg-white border-t border-stone-200 flex flex-col items-center gap-3 relative z-20">
+                    <div className="text-sm font-medium text-stone-500 text-center min-h-[20px]">{systemMessage}</div>
+
+                    <div className="w-full max-w-sm transition-opacity duration-300 absolute -top-14" style={{ opacity: (appState === 'COMMAND' || appState === 'WAKE_WORD') ? 1 : 0, pointerEvents: 'none' }}>
+                      <div className="bg-stone-800/80 backdrop-blur-sm rounded-xl p-3 text-white text-center text-sm shadow-lg truncate mx-4">
+                        {transcript || <span className="opacity-50 tracking-widest">...</span>}
+                      </div>
+                    </div>
+
+                    {/* 文字输入框作为 iOS App 环境的后备方案 */}
+                    <div className="w-full flex gap-2 items-center mb-1">
+                      <input 
+                        type="text" 
+                        value={inputText}
+                        onChange={(e) => setInputText(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && inputText.trim()) {
+                            handleUserCommandFinished(inputText.trim());
+                            setInputText('');
+                          }
+                        }}
+                        placeholder={isSpeechSupported ? "不想说话？可以直接打字..." : "语音在此App不可用，请在此打字..."}
+                        className="flex-1 bg-stone-50 border border-stone-200 rounded-full px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-200 focus:border-rose-400 transition-all shadow-inner"
+                      />
+                      <button 
+                        onClick={() => {
+                          if (inputText.trim()) {
+                            handleUserCommandFinished(inputText.trim());
+                            setInputText('');
+                          }
+                        }}
+                        disabled={!inputText.trim() || appState === 'PROCESSING'}
+                        className="bg-rose-500 text-white rounded-full px-4 py-2 text-sm font-bold shadow-md disabled:opacity-50 disabled:bg-stone-300 transition-all active:scale-95 whitespace-nowrap"
+                      >
+                        发送
+                      </button>
+                    </div>
+
+                    <div className="relative flex justify-center items-center h-24 w-full">
+                      {appState !== 'IDLE' && <div className={`absolute w-20 h-20 rounded-full ${getStateColor()} opacity-20 animate-ping`}></div>}
+                      {(appState === 'COMMAND' || appState === 'SPEAKING' || appState === 'PLAYING_SONG') && <div className={`absolute w-16 h-16 rounded-full ${getStateColor()} opacity-30 animate-pulse delay-75`}></div>}
+                      
+                      <button onClick={toggleSystem} className={`relative z-10 w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg hover:scale-105 ${getStateColor()}`} title={appState === 'IDLE' ? "开启解忧室" : "关闭系统"}>
+                        {getStateIcon()}
                       </button>
                     </div>
                   </div>
                 </div>
-              )}
-            </div>
+
+                {/* --- Settings Modal --- */}
+                {showSettings && (
+                  <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/40 backdrop-blur-sm animate-in fade-in">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95">
+                      <div className="flex justify-between items-center p-4 border-b border-stone-100">
+                        <h2 className="font-bold text-lg text-stone-800 flex items-center gap-2"><Settings className="w-5 h-5 text-rose-500" />系统设置</h2>
+                        <button onClick={() => setShowSettings(false)} className="p-1 rounded-full hover:bg-stone-100 text-stone-500"><X className="w-5 h-5" /></button>
+                      </div>
+                      <div className="p-5 space-y-6">
+                        <div className="space-y-3">
+                          <label className="text-sm font-semibold text-stone-700 block">AI 模型选择</label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <button onClick={() => setAiProvider('gemini')} className={`py-2 px-3 rounded-xl border text-sm font-medium transition-all ${aiProvider === 'gemini' ? 'bg-blue-50 border-blue-400 text-blue-700 shadow-sm' : 'bg-white border-stone-200 text-stone-500 hover:bg-stone-50'}`}>Gemini 3 Flash</button>
+                            <button onClick={() => setAiProvider('deepseek')} className={`py-2 px-3 rounded-xl border text-sm font-medium transition-all ${aiProvider === 'deepseek' ? 'bg-emerald-50 border-emerald-400 text-emerald-700 shadow-sm' : 'bg-white border-stone-200 text-stone-500 hover:bg-stone-50'}`}>DeepSeek V3</button>
+                          </div>
+                        </div>
+                        {aiProvider === 'gemini' && (
+                          <div className="space-y-2 animate-in fade-in slide-in-from-top-1">
+                            <label className="text-sm font-semibold text-stone-700 block">自定义 Gemini API Key</label>
+                            <input type="password" placeholder="选填 (留空则使用内置体验Key)" value={customGeminiKey} onChange={(e) => setCustomGeminiKey(e.target.value)} className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"/>
+                            <p className="text-[10px] text-stone-400 leading-tight">如果频繁报错网络问题，请尝试输入您自己的 Gemini API Key 突破限制。</p>
+                          </div>
+                        )}
+                        {aiProvider === 'deepseek' && (
+                          <div className="space-y-2 bg-emerald-50/50 p-3 rounded-xl border border-emerald-100 animate-in fade-in slide-in-from-top-1">
+                            <p className="text-sm font-medium text-emerald-800">已内置 Silicon Flow API</p>
+                            <p className="text-xs text-emerald-600/80 break-all font-mono">Model: deepseek-ai/DeepSeek-V3.2</p>
+                            <p className="text-[10px] text-emerald-500 mt-2">✨ 代码已硬编码内置你的密钥，无需额外填写。</p>
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-4 bg-stone-50 border-t border-stone-100 flex justify-end">
+                        <button onClick={() => setShowSettings(false)} className="px-5 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-sm font-bold shadow-sm transition-colors active:scale-95">保存并关闭</button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
           );
         }
 
-        // --- Render App ---
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
