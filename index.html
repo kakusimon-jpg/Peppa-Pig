@@ -47,7 +47,6 @@
             <circle cx="100" cy="115" r="75" fill="#ffffff" stroke="#333" strokeWidth="3"/>
             {isPlayingSong ? (
               <>
-                {/* 听歌时的多重眼部表情：微笑眼 -> 睁大眼 -> 单眼Wink */}
                 <path d="M 65 50 Q 75 40 85 50" fill="none" stroke="#333" strokeWidth="3" strokeLinecap="round">
                    <animate attributeName="d" values="M 65 50 Q 75 40 85 50; M 65 50 Q 75 25 85 50; M 65 50 Q 75 40 85 50" dur="3s" repeatCount="indefinite" />
                 </path>
@@ -72,7 +71,6 @@
               </path>
             ) : isPlayingSong ? (
               <path d="M 70 135 Q 100 160 130 135 Z" fill="#e3001b" stroke="#333" strokeWidth="3">
-                 {/* 听歌时嘴型随节奏变化：微笑 -> 张大 -> 嘟嘴 */}
                  <animate attributeName="d" values="M 70 135 Q 100 160 130 135 Z; M 80 135 Q 100 180 120 135 Z; M 90 135 Q 100 150 110 135 Z; M 70 135 Q 100 160 130 135 Z" dur="2s" repeatCount="indefinite" />
               </path>
             ) : (
@@ -158,13 +156,10 @@
 
         const NinjaTurtleAvatar = ({ isSpeaking, isPlayingSong }) => (
           <svg viewBox="0 0 200 200" className="w-32 h-32 sm:w-40 sm:h-40 drop-shadow-xl transition-transform duration-300">
-            {/* 脸部形状 */}
             <ellipse cx="100" cy="110" rx="65" ry="55" fill="#4caf50" stroke="#333" strokeWidth="3"/>
-            {/* 脸颊突起 */}
             <ellipse cx="45" cy="120" rx="15" ry="25" fill="#4caf50" stroke="#333" strokeWidth="3" transform="rotate(20 45 120)"/>
             <ellipse cx="155" cy="120" rx="15" ry="25" fill="#4caf50" stroke="#333" strokeWidth="3" transform="rotate(-20 155 120)"/>
             
-            {/* 飘逸的眼罩绑带 */}
             <path d="M 40 95 Q 10 110 15 130 Q 25 120 30 100 Z" fill="#2196f3" stroke="#333" strokeWidth="2">
                {isPlayingSong && <animate attributeName="d" values="M 40 95 Q 10 110 15 130 Q 25 120 30 100 Z; M 40 95 Q 0 90 5 110 Q 20 110 30 100 Z; M 40 95 Q 10 110 15 130 Q 25 120 30 100 Z" dur="1s" repeatCount="indefinite"/>}
             </path>
@@ -172,10 +167,8 @@
                {isPlayingSong && <animate attributeName="d" values="M 35 105 Q 15 130 20 150 Q 35 135 40 115 Z; M 35 105 Q 5 140 10 160 Q 25 145 40 115 Z; M 35 105 Q 15 130 20 150 Q 35 135 40 115 Z" dur="1.2s" repeatCount="indefinite"/>}
             </path>
 
-            {/* 眼罩本罩 */}
             <path d="M 30 90 Q 100 115 170 90 Q 180 110 170 125 Q 100 145 30 125 Z" fill="#2196f3" stroke="#333" strokeWidth="3"/>
             
-            {/* 眼睛 */}
             {isPlayingSong ? (
                <>
                  <path d="M 65 105 Q 80 95 90 105" fill="none" stroke="#fff" strokeWidth="4" strokeLinecap="round">
@@ -192,7 +185,6 @@
                </>
             )}
             
-            {/* 嘴巴 */}
             {isSpeaking ? (
               <path d="M 70 140 Q 100 165 130 140 Z" fill="#fff" stroke="#333" strokeWidth="3" strokeLinejoin="round">
                  <animate attributeName="d" values="M 70 140 Q 100 165 130 140 Z; M 70 140 Q 100 145 130 140 Z; M 70 140 Q 100 165 130 140 Z" dur="0.3s" repeatCount="indefinite" />
@@ -209,22 +201,16 @@
 
         const PopeyeAvatar = ({ isSpeaking, isPlayingSong }) => (
           <svg viewBox="0 0 200 200" className="w-32 h-32 sm:w-40 sm:h-40 drop-shadow-xl transition-transform duration-300">
-            {/* 脸部上方 */}
             <path d="M 60 80 Q 100 40 140 80 L 140 120 Q 100 140 60 120 Z" fill="#ffe0bd" stroke="#333" strokeWidth="3"/>
-            
-            {/* 超大的下巴 */}
             <ellipse cx="100" cy="140" rx="45" ry="35" fill="#ffe0bd" stroke="#333" strokeWidth="3"/>
             <path d="M 85 155 Q 100 165 115 155" fill="none" stroke="#333" strokeWidth="2" strokeLinecap="round"/>
 
-            {/* 水手帽 */}
             <path d="M 50 60 Q 100 10 150 60 Z" fill="#fff" stroke="#333" strokeWidth="3"/>
             <rect x="45" y="60" width="110" height="15" fill="#333"/>
             <rect x="90" y="60" width="20" height="15" fill="#ffcc00"/>
             
-            {/* 鼻子 */}
             <ellipse cx="100" cy="110" rx="15" ry="20" fill="#ffccb3" stroke="#333" strokeWidth="3"/>
             
-            {/* 烟斗 */}
             <g transform="translate(0, 0)">
                {isPlayingSong && <animateTransform attributeName="transform" type="rotate" values="0 130 135; 15 130 135; 0 130 135" dur="0.8s" repeatCount="indefinite"/>}
                <path d="M 120 135 L 170 145" stroke="#8b4513" strokeWidth="6" strokeLinecap="round"/>
@@ -232,7 +218,6 @@
                <path d="M 165 130 L 180 130" stroke="#333" strokeWidth="2"/>
             </g>
 
-            {/* 眼睛 - 标志性的一大一小 */}
             {isPlayingSong ? (
                <>
                  <path d="M 65 95 Q 75 85 85 95" fill="none" stroke="#333" strokeWidth="3" strokeLinecap="round">
@@ -244,12 +229,10 @@
                <>
                  <ellipse cx="75" cy="90" rx="10" ry="15" fill="#fff" stroke="#333" strokeWidth="2"/>
                  <circle cx="75" cy="95" r="4" fill="#333"/>
-                 {/* 眯眯眼 */}
                  <path d="M 115 95 L 130 95" stroke="#333" strokeWidth="3" strokeLinecap="round"/>
                </>
             )}
 
-            {/* 嘴巴 */}
             {isSpeaking ? (
               <path d="M 85 130 Q 100 150 115 130 Z" fill="#000" stroke="#333" strokeWidth="2">
                  <animate attributeName="d" values="M 85 130 Q 100 150 115 130 Z; M 85 130 Q 100 135 115 130 Z; M 85 130 Q 100 150 115 130 Z" dur="0.3s" repeatCount="indefinite" />
@@ -429,6 +412,21 @@
           const synth = window.speechSynthesis;
           const messagesEndRef = useRef(null);
 
+          // 新增：安全激活 Audio Context 的助手方法（应对 iOS 浏览器限制）
+          const initAudioContext = () => {
+            if (audioRef.current && !audioRef.current.dataset.unlocked) {
+              audioRef.current.dataset.unlocked = "true";
+              audioRef.current.volume = 0; // 短暂静音避免噪音
+              audioRef.current.play().then(() => {
+                audioRef.current.pause();
+                audioRef.current.volume = 1;
+              }).catch((e) => {
+                console.warn("Audio pre-unlock failed:", e);
+                audioRef.current.volume = 1;
+              });
+            }
+          };
+
           useEffect(() => {
             if (window.speechSynthesis) {
               window.speechSynthesis.getVoices();
@@ -554,7 +552,6 @@
             setTranscript('');
             setCurrentSong(null);
             
-            // 获取当前头像名字用于打招呼
             const currentAvatar = AVATAR_OPTIONS.find(a => a.id === activeAvatarIdRef.current) || AVATAR_OPTIONS[0];
             const initialGreeting = languageRef.current === 'zh-HK' 
               ? `你好，我係你嘅家庭調解員${currentAvatar.name}！發生咩事啊？同我講下啦，我幫你平下理。` 
@@ -597,11 +594,14 @@
             setAppState('PROCESSING');
             setSystemMessage(`正在搜索歌曲: ${query}...`);
             try {
-              const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=1`);
+              // 增加搜索限制，防止第一首没版权
+              const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=5`);
               const data = await res.json();
               
-              if (data.results && data.results.length > 0) {
-                const track = data.results[0];
+              // 必须找到一个带有真实试听链接的音轨
+              const track = data.results && data.results.find(t => t.previewUrl);
+              
+              if (track) {
                 const songData = {
                   title: track.trackName,
                   artist: track.artistName,
@@ -615,15 +615,23 @@
                 
                 if (audioRef.current) {
                   audioRef.current.src = songData.url;
-                  audioRef.current.play();
+                  // 捕捉被浏览器（如iOS Safari）拦截自动播放的异常
+                  audioRef.current.play().catch(err => {
+                    console.error("Audio playback restricted by browser:", err);
+                    setAppState('SPEAKING');
+                    const failMsg = languageRef.current === 'zh-HK' ? "哎呀，瀏覽器限制咗自動播放，放唔到歌呀。" : "哎呀，浏览器限制了自动播放，无法为您放歌。";
+                    addMessage('assistant', failMsg, aiPersonaRef.current);
+                    speakText(failMsg, resumeListening);
+                  });
                 }
               } else {
                 setAppState('SPEAKING');
-                const failMsg = languageRef.current === 'zh-HK' ? "哎呀，揾唔到呢首歌喎，不如换一首？" : "哎呀，没找到这首歌呢，不如换一首？";
+                const failMsg = languageRef.current === 'zh-HK' ? "哎呀，揾唔到呢首歌嘅试听喎，不如换一首？" : "哎呀，没找到这首歌的试听片段呢，不如换一首？";
                 addMessage('assistant', failMsg, aiPersonaRef.current);
                 speakText(failMsg, resumeListening);
               }
             } catch (e) {
+              console.error("iTunes API fetch error:", e);
               setAppState('SPEAKING');
               const failMsg = languageRef.current === 'zh-HK' ? "点歌系统网络出咗啲问题，一阵再试下啦。" : "点歌系统网络出了点问题，稍后再试下吧。";
               addMessage('assistant', failMsg, aiPersonaRef.current);
@@ -640,7 +648,8 @@
             setSystemMessage(`${getAiName(aiPersonaRef.current)} 正在思考怎么回复你...`);
             let responseText = await callAI(userText);
             
-            const musicMatch = responseText.match(/\[MUSIC:\s*(.*?)\s*\]\s*([\s\S]*)/i);
+            // 修复正则：兼顾了全角中文冒号和半角英文冒号的识别
+            const musicMatch = responseText.match(/\[MUSIC[:：]\s*(.*?)\s*\]\s*([\s\S]*)/i);
             let songQuery = null;
             let aiSpeechText = responseText;
             
@@ -749,6 +758,7 @@
           };
 
           const toggleSystem = () => {
+            initAudioContext(); // 用户点击时解锁音频
             if (appState === 'IDLE') {
               startSystem();
             } else {
@@ -1027,6 +1037,7 @@
                         onChange={(e) => setInputText(e.target.value)}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' && inputText.trim()) {
+                            initAudioContext(); // 用户点击时解锁音频
                             handleUserCommandFinished(inputText.trim());
                             setInputText('');
                           }
@@ -1036,6 +1047,7 @@
                       />
                       <button 
                         onClick={() => {
+                          initAudioContext(); // 用户点击时解锁音频
                           if (inputText.trim()) {
                             handleUserCommandFinished(inputText.trim());
                             setInputText('');
